@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Anty USOS</title>
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 1200px; margin: 0 auto; background-color: #f9f9f9; }
+        
+        #toggle-settings-btn { background: #34495e; color: #fff; border: none; padding: 12px 20px; font-weight: bold; font-size: 15px; border-radius: 8px; cursor: pointer; width: 100%; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; transition: background 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        #toggle-settings-btn:hover { background: #2c3e50; }
+        
+        #settings-panel { overflow: hidden; transition: max-height 0.3s ease-out; }
+        .panel-hidden { display: none; }
+        
+        #filters { margin-bottom: 20px; padding: 15px; background: #fff; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+        #filters span { font-weight: bold; margin-right: 10px; width: 100%; }
+        .filter-group { display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 10px; width: 100%; border-bottom: 1px solid #eee; padding-bottom: 10px; align-items: center;}
+        .filter-group:last-of-type { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        label { cursor: pointer; display: flex; align-items: center; gap: 5px; font-size: 14px; }
+        
+        .sub-filters { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; background: #fdfdfd; padding: 5px 10px; border-radius: 5px; border: 1px solid #f0f0f0;}
+        .sub-filters strong { color: #555; font-size: 13px; margin-right: 5px;}
+
+        #save-btn { background: #27ae60; color: #fff; border: none; padding: 12px 20px; font-weight: bold; font-size: 15px; border-radius: 5px; cursor: pointer; width: 100%; margin-top: 15px; transition: background 0.2s; }
+        #save-btn:hover { background: #2ecc71; }
+
+        #calendar { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        
+        .fc-event { padding: 2px 4px; border: none !important; transition: transform 0.1s; }
+        .fc-event.clickable-event { cursor: pointer; border-left: 3px solid #fff !important; }
+        .fc-event.clickable-event:hover { transform: scale(1.02); opacity: 0.9; }
+        .fc-event-title { font-weight: bold; font-size: 0.85em; white-space: normal !important; }
+    </style>
+</head>
+<body>
+
+    <button id="toggle-settings-btn">
+        <span>⚙️ Ustawienia planu i grup</span>
+        <span id="toggle-icon">▼</span>
+    </button>
+
+    <div id="settings-panel">
+        <div id="filters">
+            <span>Wybierz swoje grupy:</span>
+            
+            <div class="filter-group">
+                <strong>Wykłady:</strong> <label><input type="checkbox" value="grupa-w" checked> Wykłady (W)</label>
+            </div>
+            
+            <div class="filter-group">
+                <strong>Ćwiczenia (niezależne):</strong>
+                <div class="sub-filters">
+                    <strong>Czynności operacyjno-rozpoznawcze:</strong>
+                    <label><input type="checkbox" value="grupa-czynnosci-g1" checked> G1</label>
+                    <label><input type="checkbox" value="grupa-czynnosci-g2" checked> G2</label>
+                </div>
+                <div class="sub-filters">
+                    <strong>Ochrona imprez:</strong>
+                    <label><input type="checkbox" value="grupa-ochrona-g1" checked> G1</label>
+                    <label><input type="checkbox" value="grupa-ochrona-g2" checked> G2</label>
+                </div>
+                <div class="sub-filters">
+                    <strong>Prawo wykroczeń:</strong>
+                    <label><input type="checkbox" value="grupa-prawo-g1" checked> G1</label>
+                    <label><input type="checkbox" value="grupa-prawo-g2" checked> G2</label>
+                </div>
+                <div class="sub-filters">
+                    <strong>Polityka zagraniczna:</strong>
+                    <label><input type="checkbox" value="grupa-polityka-g1" checked> G1</label>
+                    <label><input type="checkbox" value="grupa-polityka-g2" checked> G2</label>
+                </div>
+            </div>
+
+            <div class="filter-group">
+                <strong>Seminaria (SEM1):</strong>
+                <label><input type="checkbox" value="grupa-sem-kubas" checked> Kubas</label>
+                <label><input type="checkbox" value="grupa-sem-czornik" checked> Czornik</label>
+                <label><input type="checkbox" value="grupa-sem-czyz" checked> Czyż</label>
+                <label><input type="checkbox" value="grupa-sem-glajcar" checked> Glajcar</label>
+            </div>
+            
+            <div class="filter-group">
+                <strong>Warsztaty (WR):</strong>
+                <label><input type="checkbox" value="grupa-wr1" checked> WR1</label>
+                <label><input type="checkbox" value="grupa-wr2" checked> WR2</label>
+                <label><input type="checkbox" value="grupa-wr3" checked> WR3</label>
+            </div>
+            
+            <div class="filter-group">
+                <strong>Lektoraty (L):</strong>
+                <label><input type="checkbox" value="grupa-l1" checked> L1</label>
+                <label><input type="checkbox" value="grupa-l3" checked> L3</label>
+                <label><input type="checkbox" value="grupa-l4" checked> L4</label>
+            </div>
+            
+            <button id="save-btn">💾 Zapisz mój plan</button>
+        </div>
+    </div>
+
+    <div id="calendar"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var calendarEl = document.getElementById('calendar');
+            
+            let settingsPanel = document.getElementById('settings-panel');
+            let toggleIcon = document.getElementById('toggle-icon');
+            let isMenuOpen = localStorage.getItem('wsb_menu_open');
+            
+            if (isMenuOpen === 'false') {
+                settingsPanel.classList.add('panel-hidden');
+                toggleIcon.textContent = '▲';
+            }
+
+            document.getElementById('toggle-settings-btn').addEventListener('click', function() {
+                settingsPanel.classList.toggle('panel-hidden');
+                
+                if (settingsPanel.classList.contains('panel-hidden')) {
+                    toggleIcon.textContent = '▲';
+                    localStorage.setItem('wsb_menu_open', 'false');
+                } else {
+                    toggleIcon.textContent = '▼';
+                    localStorage.setItem('wsb_menu_open', 'true');
+                }
+                setTimeout(() => { calendar.render(); }, 10);
+            });
+
+            let savedFilters = JSON.parse(localStorage.getItem('wsb_filters'));
+            if (savedFilters) {
+                document.querySelectorAll('#filters input').forEach(function(checkbox) {
+                    checkbox.checked = savedFilters.includes(checkbox.value);
+                });
+            }
+
+            function addDays(dateStr, days) {
+                let d = new Date(dateStr + 'T12:00:00');
+                d.setDate(d.getDate() + days);
+                return d.toISOString().split('T')[0];
+            }
+
+            var finalEvents = [
+                { title: 'K1: Konwersatorium (Bieniek, s. 212)', daysOfWeek: [1], startTime: '09:45:00', endTime: '11:15:00', className: 'wspolne', backgroundColor: '#9b59b6' },
+                { title: 'K2: Konwersatorium (Lustig, brak sali)', daysOfWeek: [2], startTime: '13:45:00', endTime: '15:15:00', className: 'wspolne', backgroundColor: '#9b59b6' },
+                
+                { title: 'W: Prawo wykroczeń (Pawlica, s. 212)', daysOfWeek: [2], startTime: '19:00:00', endTime: '20:30:00', className: 'grupa-w', backgroundColor: '#3498db' },
+                { title: 'L1: Język arabski (Al-Sultan, s. 238)', daysOfWeek: [4], startTime: '17:15:00', endTime: '18:45:00', className: 'grupa-l1', backgroundColor: '#1abc9c' },
+                { title: 'L4: Język arabski (Al-Sultan, s. 238)', daysOfWeek: [4], startTime: '19:00:00', endTime: '20:30:00', className: 'grupa-l4', backgroundColor: '#1abc9c' },
+                { title: 'WR1: Metody i narzędzia (Kmak, s. 0.15)', daysOfWeek: [5], startTime: '08:00:00', endTime: '09:30:00', className: 'grupa-wr1', backgroundColor: '#e74c3c' },
+                { title: 'WR2: Metody i narzędzia (Kmak, s. 0.15)', daysOfWeek: [5], startTime: '09:45:00', endTime: '11:15:00', className: 'grupa-wr2', backgroundColor: '#e74c3c' },
+                { title: 'L3: Język arabski (Al-Sultan, s. 110)', daysOfWeek: [5], startTime: '11:30:00', endTime: '13:00:00', className: 'grupa-l3', backgroundColor: '#1abc9c' },
+                { title: 'WR3: Metody i narzędzia (Kmak, s. 238)', daysOfWeek: [5], startTime: '13:45:00', endTime: '15:15:00', className: 'grupa-wr3', backgroundColor: '#e74c3c' },
+                
+                { title: 'W: Czynności operacyjno-rozpoznawcze (Szydłowski, s. 240)', start: '2026-10-05T15:30:00', end: '2026-10-05T20:30:00', className: 'grupa-w', backgroundColor: '#3498db' },
+                { title: 'W: Czynności operacyjno-rozpoznawcze (Szydłowski, s. 240)', start: '2026-10-26T15:30:00', end: '2026-10-26T20:30:00', className: 'grupa-w', backgroundColor: '#3498db' },
+                { title: 'G1: Czynności operacyjno-rozpoznawcze (Szydłowski, s. 240)', start: '2026-10-12T15:30:00', end: '2026-10-12T20:30:00', className: 'grupa-czynnosci-g1', backgroundColor: '#2ecc71' },
+                { title: 'G2: Czynności operacyjno-rozpoznawcze (Szydłowski, s. 240)', start: '2026-10-19T15:30:00', end: '2026-10-19T20:30:00', className: 'grupa-czynnosci-g2', backgroundColor: '#e67e22' }
+            ];
+
+            var biweeklyConfig = [
+                { id: 'sem_kubas', title: 'SEM1: Seminarium (Kubas, s. 109)', baseDate: '2026-10-06', startTime: '08:00:00', endTime: '09:30:00', className: 'grupa-sem-kubas', backgroundColor: '#f1c40f' },
+                { id: 'sem_czornik', title: 'SEM1: Seminarium (Czornik, s. 204)', baseDate: '2026-10-06', startTime: '08:00:00', endTime: '09:30:00', className: 'grupa-sem-czornik', backgroundColor: '#f1c40f' },
+                { id: 'sem_czyz', title: 'SEM1: Seminarium (Czyż, s. 109)', baseDate: '2026-10-06', startTime: '08:00:00', endTime: '09:30:00', className: 'grupa-sem-czyz', backgroundColor: '#f1c40f' },
+                { id: 'sem_glajcar', title: 'SEM1: Seminarium (Glajcar, s. 147)', baseDate: '2026-10-06', startTime: '15:30:00', endTime: '17:00:00', className: 'grupa-sem-glajcar', backgroundColor: '#f1c40f' },
+                
+                { id: 'g2_ochrona', title: 'G2: Ochrona imprez (Dudek, s. 212)', baseDate: '2026-10-06', startTime: '17:15:00', endTime: '18:45:00', className: 'grupa-ochrona-g2', backgroundColor: '#e67e22' },
+                { id: 'g1_prawo', title: 'G1: Prawo wykroczeń (Pawlica, s. 232)', baseDate: '2026-10-06', startTime: '17:15:00', endTime: '18:45:00', className: 'grupa-prawo-g1', backgroundColor: '#2ecc71' },
+                { id: 'g1_ochrona', title: 'G1: Ochrona imprez (Dudek, s. 212)', baseDate: '2026-10-13', startTime: '17:15:00', endTime: '18:45:00', className: 'grupa-ochrona-g1', backgroundColor: '#2ecc71' },
+                { id: 'g2_prawo', title: 'G2: Prawo wykroczeń (Pawlica, s. 232)', baseDate: '2026-10-13', startTime: '17:15:00', endTime: '18:45:00', className: 'grupa-prawo-g2', backgroundColor: '#e67e22' },
+                
+                { id: 'g1_polityka', title: 'G1: Polityka zagraniczna (Szynol-Orlińska, s. 239)', baseDate: '2026-10-08', startTime: '09:45:00', endTime: '11:15:00', className: 'grupa-polityka-g1', backgroundColor: '#2ecc71' },
+                { id: 'g2_polityka', title: 'G2: Polityka zagraniczna (Szynol-Orlińska, s. 239)', baseDate: '2026-10-08', startTime: '11:30:00', endTime: '13:00:00', className: 'grupa-polityka-g2', backgroundColor: '#e67e22' },
+
+                { id: 'k1_prognozowanie', title: 'K1: Prognozowanie (Chrobot, s. 212)', baseDate: '2026-10-08', startTime: '13:45:00', endTime: '15:15:00', className: 'wspolne', backgroundColor: '#9b59b6' },
+                { id: 'k2_prognozowanie', title: 'K2: Prognozowanie (Chrobot, s. 0.15)', baseDate: '2026-10-15', startTime: '13:45:00', endTime: '15:15:00', className: 'wspolne', backgroundColor: '#9b59b6' },
+                { id: 'w_polityka', title: 'W: Polityka zagraniczna (Okraska, Sala Sympozjalna 2)', baseDate: '2026-10-08', startTime: '15:30:00', endTime: '17:00:00', className: 'grupa-w', backgroundColor: '#3498db' },
+                { id: 'k2_teoria', title: 'K2: Teoria wykorz. przymusu (Karwas, s. 0.15)', baseDate: '2026-10-15', startTime: '15:30:00', endTime: '17:00:00', className: 'wspolne', backgroundColor: '#9b59b6' },
+                { id: 'k1_teoria', title: 'K1: Teoria wykorz. przymusu (Jagodziński, s. 212)', baseDate: '2026-10-09', startTime: '15:30:00', endTime: '17:00:00', className: 'wspolne', backgroundColor: '#9b59b6' }
+            ];
+
+            biweeklyConfig.forEach(function(item) {
+                let shiftDays = parseInt(localStorage.getItem('shift_' + item.id)) || 0;
+                let startDay = addDays(item.baseDate, shiftDays);
+                
+                for(let i = 0; i < 10; i++) {
+                    let eventDate = addDays(startDay, i * 14);
+                    finalEvents.push({
+                        id: item.id, 
+                        title: '🔄 ' + item.title,
+                        start: eventDate + 'T' + item.startTime,
+                        end: eventDate + 'T' + item.endTime,
+                        className: item.className + ' clickable-event',
+                        backgroundColor: item.backgroundColor
+                    });
+                }
+            });
+
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'timeGridWeek',
+                initialDate: '2026-10-05',
+                locale: 'pl',
+                firstDay: 1,
+                hiddenDays: [0, 6], 
+                slotMinTime: '08:00:00',
+                slotMaxTime: '21:00:00',
+                allDaySlot: false,
+                slotEventOverlap: false,
+                events: finalEvents,
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: ''
+                },
+                
+                eventDidMount: function(info) {
+                    let checkedBoxes = Array.from(document.querySelectorAll('#filters input:checked')).map(cb => cb.value);
+                    let eventClass = Array.from(info.event.classNames).find(c => c.startsWith('grupa-'));
+                    if (eventClass && !checkedBoxes.includes(eventClass)) {
+                        info.el.style.display = 'none'; 
+                    }
+                },
+
+                eventClick: function(info) {
+                    if(info.event.id) { 
+                        let currentShift = parseInt(localStorage.getItem('shift_' + info.event.id)) || 0;
+                        let newShift = currentShift === 0 ? 7 : 0;
+                        localStorage.setItem('shift_' + info.event.id, newShift);
+                        location.reload();
+                    }
+                }
+            });
+            
+            calendar.render();
+
+            document.querySelectorAll('#filters input').forEach(function(checkbox) {
+                checkbox.addEventListener('change', function() { calendar.render(); });
+            });
+
+            document.getElementById('save-btn').addEventListener('click', function() {
+                let checkedBoxes = Array.from(document.querySelectorAll('#filters input:checked')).map(cb => cb.value);
+                localStorage.setItem('wsb_filters', JSON.stringify(checkedBoxes));
+                alert('Plan został trwale zapisany na tym urządzeniu!');
+            });
+        });
+    </script>
+</body>
+</html>
